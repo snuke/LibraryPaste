@@ -5,7 +5,7 @@ Library Paste
 
 1. PackageControlを入れてない場合は入れる（[PackageControle](https://packagecontrol.io/installation#st2)）
 2. コマンドパレットを開いて（macなら⌘+shift+P、windowsはctrl+shift+P）「add rep」と入力してEnter
-3. 「 https://github.com/snuke/LibraryPaste.git 」と入力してEnter
+3. 「 https://github.com/snuke/LibraryPaste 」と入力してEnter
 4. コマンドパレットを開いて「install」と入力してEnter
 5. 「LibraryPaste」と入力してEnter
 6. コマンドパレットを開いて「brow」と入力してEnter
