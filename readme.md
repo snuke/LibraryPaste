@@ -8,9 +8,10 @@ Library Paste
 3. 「 https://github.com/snuke/LibraryPaste.git 」と入力してEnter
 4. コマンドパレットを開いて「install」と入力してEnter
 5. 「LibraryPaste」と入力してEnter
-6. メニューから「Sublime Text 2」→「Preferences」→「Browse Packages...」で開く
-7. 「LibraryPaste.py」を開いて、4行目にある「root = ""」のところに自分のライブラリがあるフォルダへのパスを書く
-8. 「Default (使っているOS名).sublime-keymap」を開いて、「"keys": ["なんちゃら"]」となってるところを好きなキーバインドに書き換える（僕はMacで"super+r"にしてます）
+6. コマンドパレットを開いて「brow」と入力してEnter
+7. 6で開いたPackagesフォルダからLibraryPasteフォルダを探して開く
+8. 「LibraryPaste.py」を開いて、4行目にある「root = ""」のところに自分のライブラリがあるフォルダへのパスを書く
+9. 「Default (使っているOS名).sublime-keymap」を開いて、「"keys": ["なんちゃら"]」となってるところを好きなキーバインドに書き換える（僕はMacで"super+r"にしてます）
 
 ###使い方
 
