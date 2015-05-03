@@ -1,10 +1,10 @@
 import sublime, sublime_plugin
 import random, re
 
-root = "" # ex. "/Users/snuke/Documents/library/"
+root = "/Users/snuke/Documents/library/"
 
-def genRand():
-  return str(random.randint(100000,999999))
+def genRand(l,r):
+  return str(random.randint(l,r-1))
 
 class LibraryPasteCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -18,9 +18,18 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
     # [rand]
     sels = self.view.find_all(r"\[rand\]")
     for sel in sels[::-1]:
-      self.view.replace(edit, sel, genRand())
+      self.view.replace(edit, sel, genRand(10**5,10**6))
+    sels = self.view.find_all(r"\[\d*\}")
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)[1:-1]
+      l = 10**5
+      r = 10**6
+      if s != "":
+        l = 0
+        r = int(s) 
+      self.view.replace(edit, sel, genRand(l,r))
     # scanf
-    sels = self.view.find_all(r"scn [\w,-\[\]]*")
+    sels = self.view.find_all(r"scn [\w,\-\[\]]*")
     for sel in sels[::-1]:
       clauses = re.split(r" |,", self.view.substr(sel))[1:]
       format = ""
@@ -34,12 +43,15 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         format += "%" + parts[1]
         args += "," + parts[0]
       result = "scanf(\"%s\"%s)" % (format, args)
+      print self.view.substr(sel)
+      print self.view.line(sel).end(),sel.end()
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
     # couts
-    sels = self.view.find_all(r"cout,.*?;*$")
+    sels = self.view.find_all(r"cout,[^;]*;")
     for sel in sels[::-1]:
       s = self.view.substr(sel)[5:]
+
       if s[-1] == ';': s = s[:-1]
       nest = 0
       result = "cout<<"
