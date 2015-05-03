@@ -48,7 +48,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
     # couts
-    sels = self.view.find_all(r"cout,[^;]*;")
+    sels = self.view.find_all(r"cout,[^;]*?(;|$)")
     for sel in sels[::-1]:
       s = self.view.substr(sel)[5:]
 
