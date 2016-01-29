@@ -29,7 +29,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         r = int(s) 
       self.view.replace(edit, sel, genRand(l,r))
     # scanf
-    sels = self.view.find_all(r"scn [\w,\-\[\]]*")
+    sels = self.view.find_all(r"scn [\w,\-\[\]\.]*")
     for sel in sels[::-1]:
       clauses = re.split(r" |,", self.view.substr(sel))[1:]
       format = ""
@@ -54,14 +54,56 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
 
       if s[-1] == ';': s = s[:-1]
       nest = 0
+      quote = 0
       result = "cout<<"
       for c in s:
-        if c == '(' or c == '{': nest += 1
-        if c == ')' or c == '}': nest -= 1
-        if c == ',' and nest == 0: result += "<<\" \"<<"
-        else: result += c
+        if quote == 0:
+          if c == '"': quote = 1
+          if c == '(' or c == '{': nest += 1
+          if c == ')' or c == '}': nest -= 1
+          if c == ',' and nest == 0: result += "<<\" \"<<"
+          else: result += c
+        else:
+          if c == '"': quote = 0
+          result += c
       result += "<<endl;"
       self.view.replace(edit, sel, result)
+    # prints
+    sels = self.view.find_all(r"print,[^;]*?(;|$)")
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)[6:]
+      if s[-1] == ';': s = s[:-1]
+      mode = 0
+      nest = 0
+      result = 'printf("'
+      for c in s:
+        if mode == 0:
+          if c == ',':
+            mode = 1
+            result = result[:-1] + '\\n",'
+          else:
+            result += '%' + c
+            if c == 'l': result += 'd'
+            result += ' '
+        else: result += c
+      result += ');'
+      self.view.replace(edit, sel, result)
+    # to[a].pb(b);g -> to[b].pb(a);
+    sels = self.view.find_all(r"^.*;g$")
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)[:-1]
+      s = re.sub(r'\[a\]', '[bxotv]', s)
+      s = re.sub(r'\(a\)', '(bxotv)', s)
+      s = re.sub(r'\[b\]', '[a]', s)
+      s = re.sub(r'\(b\)', '(a)', s)
+      s = re.sub('xotv', '', s)
+      self.view.replace(edit, sel, s)
+    # rin -> rep(i,n)
+    for region in self.view.sel():
+      line = self.view.line(region)
+      s = self.view.substr(line)
+      s = re.sub(r'r(\w)(\w*)$', r'rep(\1,\2)', s)
+      self.view.replace(edit, line, s)
 
   # paste library
   def paste(self, edit, sel, name):
