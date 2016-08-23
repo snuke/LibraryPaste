@@ -1,3 +1,4 @@
 [
-  { "keys": ["ctrl+super+x"], "command": "library_paste"}
+  { "keys": ["super+r"], "command": "library_paste"},
+  { "keys": ["super+k"], "command": "insert_macro"}
 ]

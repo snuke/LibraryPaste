@@ -2,5 +2,9 @@
     {
         "caption": "LibraryPaste: Paste libraries",
         "command": "library_paste"
+    },
+    {
+        "caption": "InsertMacro: Insert macro",
+        "command": "insert_macro"
     }
 ]

@@ -68,6 +68,27 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
           result += c
       result += "<<endl;"
       self.view.replace(edit, sel, result)
+    # cerrs
+    sels = self.view.find_all(r"cerr,[^;]*?(;|$)")
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)[5:]
+
+      if s[-1] == ';': s = s[:-1]
+      nest = 0
+      quote = 0
+      result = "cerr<<"
+      for c in s:
+        if quote == 0:
+          if c == '"': quote = 1
+          if c == '(' or c == '{': nest += 1
+          if c == ')' or c == '}': nest -= 1
+          if c == ',' and nest == 0: result += "<<\" \"<<"
+          else: result += c
+        else:
+          if c == '"': quote = 0
+          result += c
+      result += "<<endl;"
+      self.view.replace(edit, sel, result)
     # prints
     sels = self.view.find_all(r"print,[^;]*?(;|$)")
     for sel in sels[::-1]:
@@ -82,8 +103,10 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
             mode = 1
             result = result[:-1] + '\\n",'
           else:
-            result += '%' + c
-            if c == 'l': result += 'd'
+            format = c
+            if c == 'l': format = 'lld'
+            if c == 'f': format = '.10f'
+            result += '%' + format
             result += ' '
         else: result += c
       result += ');'
@@ -92,11 +115,11 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
     sels = self.view.find_all(r"^.*;g$")
     for sel in sels[::-1]:
       s = self.view.substr(sel)[:-1]
-      s = re.sub(r'\[a\]', '[bxotv]', s)
-      s = re.sub(r'\(a\)', '(bxotv)', s)
+      s = re.sub(r'\[a\]', '[DaMmY]', s)
+      s = re.sub(r'\(a\)', '(DaMmY)', s)
       s = re.sub(r'\[b\]', '[a]', s)
       s = re.sub(r'\(b\)', '(a)', s)
-      s = re.sub('xotv', '', s)
+      s = re.sub('DaMmY', 'b', s)
       self.view.replace(edit, sel, s)
     # rin -> rep(i,n)
     for region in self.view.sel():
@@ -111,4 +134,30 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       f = open(root+name+".cpp", "r")
       self.view.replace(edit, sel, f.read())
       f.close()
-    except: pass
+    except:
+      try:
+        f = open(root+"macro/"+name+".cpp", "r")
+        self.view.replace(edit, sel, f.read())
+        f.close()
+      except: pass
+
+class InsertMacroCommand(sublime_plugin.WindowCommand):
+  def run(self):
+    self.window.show_input_panel("Input macro name:","",self.on_done,None,None)
+  def on_done(self,name):
+    self.window.run_command("paste_macro",{"name":name})
+
+class PasteMacroCommand(sublime_plugin.TextCommand):
+  def run(self,edit,name):
+    pos = self.view.find(r'^$', 0)
+    self.paste(edit, pos.a, name)
+  # paste library
+  def paste(self, edit, pos, name):
+    try:
+      with open(root+name+".cpp", "r") as f:
+        self.view.insert(edit, pos, f.read()+'\n')
+    except:
+      try:
+        with open(root+"macro/"+name+".cpp", "r") as f:
+          self.view.insert(edit, pos, f.read()+'\n')
+      except: pass
