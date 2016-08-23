@@ -155,7 +155,7 @@ class PasteMacroCommand(sublime_plugin.TextCommand):
   def paste(self, edit, pos, name):
     try:
       with open(root+name+".cpp", "r") as f:
-        self.view.insert(edit, pos, f.read()+'\n')
+        self.view.insert(edit, pos, '\n'+f.read())
     except:
       try:
         with open(root+"macro/"+name+".cpp", "r") as f:
