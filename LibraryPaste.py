@@ -1,7 +1,8 @@
 import sublime, sublime_plugin
 import random, re
 
-root = "/Users/snuke/Documents/library/"
+# root directory
+root = ">>>EDIT HERE<<<"
 
 def genRand(l,r):
   return str(random.randint(l,r-1))
