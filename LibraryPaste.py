@@ -2,7 +2,11 @@ import sublime, sublime_plugin
 import random, re
 
 # root directory
-root = ">>>EDIT HERE<<<"
+root = ''
+with open('root.txt') as f:
+  root = f.readline()
+print root
+if root[-1] != '/': root += '/'
 
 def genRand(l,r):
   return str(random.randint(l,r-1))
@@ -29,6 +33,35 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         l = 0
         r = int(s) 
       self.view.replace(edit, sel, genRand(l,r))
+    # df
+    sels = self.view.find_all(r"df [\w,\-\[\]\.]*")
+    for sel in sels[::-1]:
+      clauses = re.split(r" |,", self.view.substr(sel))[1:]
+      format = ""
+      args = ""
+      df = {}
+      for clause in clauses:
+        parts = clause.split("-")
+        if len(parts) == 1: parts.append("d")
+        typ = 'int'
+        if parts[1] == 'l': typ = 'll'
+        if parts[1] == 'f': typ = 'double'
+        if parts[1] == 'c': typ = 'char'
+        if typ not in df: df[typ] = []
+        df[typ].append(parts[0])
+        if parts[1] == "l": parts[1] = "lld"
+        if parts[1] == "f": parts[1] = "lf"
+        if parts[1] != "s": parts[0] = "&" + parts[0]
+        if parts[1] == "c": format += " "
+        format += "%" + parts[1]
+        args += "," + parts[0]
+      result = ''
+      nl = ';\n' + ' '*self.view.rowcol(sel.a)[1]
+      for typ,vs in df.items():
+        result += typ + ' ' + ','.join(vs) + nl
+      result += "scanf(\"%s\"%s)" % (format, args)
+      if self.view.line(sel).end() == sel.end(): result += ';'
+      self.view.replace(edit, sel, result)
     # scanf
     sels = self.view.find_all(r"scn [\w,\-\[\]\.]*")
     for sel in sels[::-1]:
@@ -39,56 +72,42 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         parts = clause.split("-")
         if len(parts) == 1: parts.append("d")
         if parts[1] == "l": parts[1] = "lld"
+        if parts[1] == "f": parts[1] = "lf"
         if parts[1] != "s": parts[0] = "&" + parts[0]
         if parts[1] == "c": format += " "
         format += "%" + parts[1]
         args += "," + parts[0]
       result = "scanf(\"%s\"%s)" % (format, args)
-      print self.view.substr(sel)
-      print self.view.line(sel).end(),sel.end()
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
-    # couts
-    sels = self.view.find_all(r"cout,[^;]*?(;|$)")
+    # cin,cout,cerr
+    sels = self.view.find_all(r"c(err|in|out),[^;]*?(;|$)")
     for sel in sels[::-1]:
-      s = self.view.substr(sel)[5:]
+      s = self.view.substr(sel)
+      cs,op = s[:4],'<<'
+      if cs[1] == 'i':
+        cs,op = cs[:-1],'>>'
+      s = s[len(cs)+1:]
 
       if s[-1] == ';': s = s[:-1]
       nest = 0
       quote = 0
-      result = "cout<<"
+      result = cs + op
       for c in s:
         if quote == 0:
           if c == '"': quote = 1
           if c == '(' or c == '{': nest += 1
           if c == ')' or c == '}': nest -= 1
-          if c == ',' and nest == 0: result += "<<\" \"<<"
+          if c == ',' and nest == 0:
+            if cs != 'cin': result += "<<\" \"<<"
           else: result += c
         else:
           if c == '"': quote = 0
           result += c
-      result += "<<endl;"
-      self.view.replace(edit, sel, result)
-    # cerrs
-    sels = self.view.find_all(r"cerr,[^;]*?(;|$)")
-    for sel in sels[::-1]:
-      s = self.view.substr(sel)[5:]
-
-      if s[-1] == ';': s = s[:-1]
-      nest = 0
-      quote = 0
-      result = "cerr<<"
-      for c in s:
-        if quote == 0:
-          if c == '"': quote = 1
-          if c == '(' or c == '{': nest += 1
-          if c == ')' or c == '}': nest -= 1
-          if c == ',' and nest == 0: result += "<<\" \"<<"
-          else: result += c
-        else:
-          if c == '"': quote = 0
-          result += c
-      result += "<<endl;"
+      if cs == 'cin':
+        result += ';'
+      else:
+        result += "<<endl;"
       self.view.replace(edit, sel, result)
     # prints
     sels = self.view.find_all(r"print,[^;]*?(;|$)")
