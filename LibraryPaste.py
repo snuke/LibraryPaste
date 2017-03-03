@@ -101,7 +101,10 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
           if c == '(' or c == '{': nest += 1
           if c == ')' or c == '}': nest -= 1
           if c == ',' and nest == 0:
-            if cs != 'cin': result += '<<" "<<'
+            if cs == 'cin':
+              result += '>>'
+            else:
+              result += '<<" "<<'
           else: result += c
         else:
           if c == '"': quote = 0
