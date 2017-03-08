@@ -174,15 +174,22 @@ class InsertMacroCommand(sublime_plugin.WindowCommand):
 
 class PasteMacroCommand(sublime_plugin.TextCommand):
   def run(self,edit,name):
-    pos = self.view.find(r'^$', 0)
-    self.paste(edit, pos.a, name)
+    self.paste(edit,name)
   # paste library
-  def paste(self, edit, pos, name):
+  def paste(self,edit,name):
     try:
-      with open(root+name+'.cpp', 'r') as f:
-        self.view.insert(edit, pos, '\n'+f.read())
+      if name[-1] == ';':
+        with open(root+name[:-1]+'.cpp', 'r') as f:
+          sel = self.view.sel()[0]
+          nl = '\n' + ' '*self.view.rowcol(sel.a)[1]
+          self.view.insert(edit, sel.a, f.read().replace('\n', nl))
+      else:
+        with open(root+name+'.cpp', 'r') as f:
+          pos = self.view.find(r'^$', 0)
+          self.view.insert(edit, pos.a, '\n'+f.read())
     except:
       try:
         with open(root+'macro/'+name+'.cpp', 'r') as f:
-          self.view.insert(edit, pos, f.read()+'\n')
+          pos = self.view.find(r'^$', 0)
+          self.view.insert(edit, pos.a, f.read()+'\n')
       except: pass
