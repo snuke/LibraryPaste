@@ -34,14 +34,14 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         r = int(s) 
       self.view.replace(edit, sel, genRand(l,r))
     # df
-    sels = self.view.find_all(r'df [\w,\-\[\]\.]*')
+    sels = self.view.find_all(r'df [\w,:\.]*')
     for sel in sels[::-1]:
       clauses = re.split(r' |,', self.view.substr(sel))[1:]
       format = ''
       args = ''
       df = {}
       for clause in clauses:
-        parts = clause.split('-')
+        parts = clause.split(':')
         if len(parts) == 1: parts.append('d')
         typ = 'int'
         if parts[1] == 'l': typ = 'll'
@@ -65,13 +65,13 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
     # scanf
-    sels = self.view.find_all(r'scn [\w,\-\[\]\.]*')
+    sels = self.view.find_all(r'scn ([\w,:\.]|\[[^\s,:]*\])*')
     for sel in sels[::-1]:
       clauses = re.split(r' |,', self.view.substr(sel))[1:]
       format = ''
       args = ''
       for clause in clauses:
-        parts = clause.split('-')
+        parts = clause.split(':')
         if len(parts) == 1: parts.append('d')
         if parts[1] == 'l': parts[1] = 'lld'
         if parts[1] == 'f': parts[1] = 'lf'

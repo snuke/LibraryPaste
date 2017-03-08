@@ -21,9 +21,9 @@ Library Paste
 |---|---|
 |[*foo*]|"*foo*.cpp" の中身を貼り付ける（行頭に書いたときのみ）|
 |空のファイル|"template.cpp" の中身を貼り付ける|
-|scn *a*,*b*|scanf("%d%d",&*a*,&*b*); みたいに置換される（詳細は下に）|
-|df *a*,*b*|int a,b;scanf("%d%d",&*a*,&*b*); みたいに置換される（詳細は下に）|
-|print,dd,*a*,*b*|printf("%d %d",*a*,*b*); みたいに置換される（詳細は下に）|
+|scn *a*,*b:l*|scanf("%d%lld",&*a*,&*b*); みたいに置換される（詳細は下に）|
+|df *a*,*b:l*|int a; ll b;scanf("%d%lld",&*a*,&*b*); みたいに置換される（詳細は下に）|
+|print,dl,*a*,*b*|printf("%d %lld",*a*,*b*); みたいに置換される（詳細は下に）|
 |cout,*a*,*b*;|cout<<*a*<<" "<<*b*<<endl; みたいに置換される(cin,cerrも同様)|
 |[}/[rand]|６桁の乱数（100000~999999）に置換される|
 
@@ -36,21 +36,21 @@ Library Paste
 scn foo,bar... などと書くと scanf に変換してくれる。foo(bar)の部分は、
 
 - *a* と書くと "%d",&*a* にな
-- *a*-◯ と書くと "%◯",&*a* になる
-- *a*-c の場合は " %c",&*a* になる
-- *a*-s の場合は "%s",*a* になる
-- *a*-l の場合は "%lld",&*a* になる
+- *a*:◯ と書くと "%◯",&*a* になる
+- *a*:c の場合は " %c",&*a* になる
+- *a*:s の場合は "%s",*a* になる
+- *a*:l の場合は "%lld",&*a* になる
 
 df の場合はさらに変数宣言までよしなに追加してくれる。
 
 #####例
 
 ```c
-scn a,b-c,c-s,d-l;
+scn a,b:c,c:s,d:l;
 scn a,b
 while (scn a);
 if (scn a,b==scn c,d) { scn e; scn f,g;}
-df a,b-c,c-s,d-l,e-f
+df a,b:c,c:s,d:l,e:f
 ```
 ↓
 
