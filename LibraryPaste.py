@@ -1,11 +1,11 @@
 import sublime, sublime_plugin
-import random, re
+import random, re, os
 
 # root directory
 root = ''
-with open('root.txt') as f:
+root_path = os.path.join(os.path.dirname(__file__), 'root.txt')
+with open(root_path) as f:
   root = f.readline()
-print root
 if root[-1] != '/': root += '/'
 
 def genRand(l,r):
