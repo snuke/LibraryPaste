@@ -152,6 +152,21 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       s = self.view.substr(line)
       s = re.sub(r'r(\w)(\w*)$', r'rep(\1,\2)', s)
       self.view.replace(edit, line, s)
+    # init
+    sels = self.view.find_all(r'init,[^;]*?(;|$)')
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)[5:]
+      if s[-1] == ';': s = s[:-1]
+      s = s.split(',')
+      s,d,x = s[:-2],s[-2],s[-1]
+      result = ''
+      for i in range(len(s)):
+        result += 'rep(i{0},{1}+1)'.format(i,s[i])
+      result += ' '+d
+      for i in range(len(s)):
+        result += '[i{0}]'.format(i)
+      result += ' = '+x+';'
+      self.view.replace(edit, sel, result)
 
   # paste library
   def paste(self, edit, sel, name):
