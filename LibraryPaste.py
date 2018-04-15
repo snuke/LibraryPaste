@@ -158,7 +158,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       s = self.view.substr(sel)[5:]
       if s[-1] == ';': s = s[:-1]
       s = s.split(',')
-      s,d,x = s[:-2],s[-2],s[-1]
+      d,s,x = s[0],s[1:-1],s[-1]
       result = ''
       for i in range(len(s)):
         result += 'rep(i{0},{1}+1)'.format(i,s[i])
