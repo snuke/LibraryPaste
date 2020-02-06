@@ -16,10 +16,12 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
     # template
     if self.view.size() == 0:
       self.paste(edit, self.view.line(0), 'template')
+
     # library
     sels = self.view.find_all(r'^\[.*?\]')
     for sel in sels[::-1]:
       self.paste(edit, sel, self.view.substr(sel)[1:-1])
+
     # [rand]
     sels = self.view.find_all(r'\[rand\]')
     for sel in sels[::-1]:
@@ -33,6 +35,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         l = 0
         r = int(s) 
       self.view.replace(edit, sel, genRand(l,r))
+
     # df
     sels = self.view.find_all(r'df [\w,:\.]*')
     for sel in sels[::-1]:
@@ -64,6 +67,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       result += 'scanf("%s"%s)' % (format, args)
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
+
     # scanf
     sels = self.view.find_all(r'scn ([\w,:\.]|\[[^\s,:]*\])*')
     for sel in sels[::-1]:
@@ -82,6 +86,50 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       result = 'scanf("%s"%s)' % (format, args)
       if self.view.line(sel).end() == sel.end(): result += ';'
       self.view.replace(edit, sel, result)
+
+    # struct
+    sels = self.view.find_all(r'^st [\w,:\.]*')
+    for sel in sels[::-1]:
+      clauses = re.split(r' |,', self.view.substr(sel))[1:]
+      df = {}
+      typs = ['int','ll','double','char','string']
+      for typ in typs:
+        df[typ] = []
+      name,clauses = clauses[0],clauses[1:]
+      for clause in clauses:
+        parts = clause.split(':')
+        if len(parts) == 1: parts.append('d')
+        typ = 'int'
+        if parts[1] == 'l': typ = 'll'
+        if parts[1] == 'f': typ = 'double'
+        if parts[1] == 'c': typ = 'char'
+        if parts[1] == 's': typ = 'string'
+        df[typ].append(parts[0])
+      lines = []
+      args = []
+      for typ in typs:
+        vs = df[typ]
+        if len(vs) > 0:
+          lines.append(typ + ' ' + ', '.join(vs) + ';')
+          for val in vs:
+            zero = '0'
+            if typ == 'string':
+              zero = '""'
+            args.append([val,typ,zero])
+      con = name+'('
+      for arg in args:
+        con += arg[1]+' '+arg[0]+'='+arg[2]+', '
+      con = con[:-2]+'):'
+      for arg in args:
+        con += arg[0]+'('+arg[0]+'),'
+      con = con[:-1]+' {}'
+      lines.append(con)
+      result = 'struct '+name+' {\n'
+      for line in lines:
+        result += '  '+line+'\n'
+      result += '};'
+      self.view.replace(edit, sel, result)
+
     # cin,cout,cerr
     sels = self.view.find_all(r'c(err|in|out),[^;]*?(;|$)')
     for sel in sels[::-1]:
@@ -114,6 +162,7 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       else:
         result += '<<endl;'
       self.view.replace(edit, sel, result)
+
     # print
     sels = self.view.find_all(r'print,[^;]*?(;|$)')
     for sel in sels[::-1]:
@@ -136,22 +185,27 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         else: result += c
       result += ');'
       self.view.replace(edit, sel, result)
+
     # to[a].pb(b);g -> to[b].pb(a);
     sels = self.view.find_all(r'^.*;g$')
     for sel in sels[::-1]:
       s = self.view.substr(sel)[:-1]
       s = re.sub(r'\[a\]', '[DaMmY]', s)
       s = re.sub(r'\(a\)', '(DaMmY)', s)
+      s = re.sub(r'\(a,', '(DaMmY,', s)
       s = re.sub(r'\[b\]', '[a]', s)
       s = re.sub(r'\(b\)', '(a)', s)
+      s = re.sub(r'\(b,', '(a,', s)
       s = re.sub('DaMmY', 'b', s)
       self.view.replace(edit, sel, s)
+
     # rin -> rep(i,n)
     for region in self.view.sel():
       line = self.view.line(region)
       s = self.view.substr(line)
       s = re.sub(r'r(\w)(\w*)$', r'rep(\1,\2)', s)
       self.view.replace(edit, line, s)
+
     # init
     sels = self.view.find_all(r'init,[^;]*?(;|$)')
     for sel in sels[::-1]:
