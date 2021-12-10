@@ -6,7 +6,6 @@ root = ''
 root_path = os.path.join(os.path.dirname(__file__), 'root.txt')
 with open(root_path) as f:
   root = f.readline()
-if root[-1] != '/': root += '/'
 
 def genRand(l,r):
   return str(random.randint(l,r-1))
@@ -91,11 +90,9 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
     sels = self.view.find_all(r'^st [\w,:\.]*')
     for sel in sels[::-1]:
       clauses = re.split(r' |,', self.view.substr(sel))[1:]
-      df = {}
-      typs = ['int','ll','double','char','string']
-      for typ in typs:
-        df[typ] = []
+      # typs = ['int','ll','double','char','string']
       name,clauses = clauses[0],clauses[1:]
+      varList,pretyp = [],''
       for clause in clauses:
         parts = clause.split(':')
         if len(parts) == 1: parts.append('d')
@@ -104,18 +101,20 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         if parts[1] == 'f': typ = 'double'
         if parts[1] == 'c': typ = 'char'
         if parts[1] == 's': typ = 'string'
-        df[typ].append(parts[0])
+        if pretyp != typ:
+          pretyp = typ
+          varList.append([typ])
+        varList[-1].append(parts[0])
       lines = []
       args = []
-      for typ in typs:
-        vs = df[typ]
-        if len(vs) > 0:
-          lines.append(typ + ' ' + ', '.join(vs) + ';')
-          for val in vs:
-            zero = '0'
-            if typ == 'string':
-              zero = '""'
-            args.append([val,typ,zero])
+      for vs in varList:
+        typ,vs = vs[0],vs[1:]
+        lines.append(typ + ' ' + ', '.join(vs) + ';')
+        zero = '0'
+        if typ == 'string':
+          zero = '""'
+        for val in vs:
+          args.append([val,typ,zero])
       con = name+'('
       for arg in args:
         con += arg[1]+' '+arg[0]+'='+arg[2]+', '
@@ -124,10 +123,23 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
         con += arg[0]+'('+arg[0]+'),'
       con = con[:-1]+' {}'
       lines.append(con)
+
+      con = 'bool operator<(const '+name+'& _) const { return '
+      con += args[0][0]+'<_.'+args[0][0]+';}'
+      lines.append(con)
+
       result = 'struct '+name+' {\n'
       for line in lines:
         result += '  '+line+'\n'
-      result += '};'
+      result += '};\n'
+
+      result += 'istream& operator>>(istream&i,'+name+'&a){return i'
+      for arg in args:
+        result += '>>a.'+arg[0]
+      result += ';}\nostream& operator<<(ostream&o,const '+name+'&a){return o'
+      result += '<<" "'.join(['<<a.'+arg[0] for arg in args])
+      result += ';}'
+
       self.view.replace(edit, sel, result)
 
     # cin,cout,cerr
