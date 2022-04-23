@@ -234,6 +234,26 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       result += ' = '+x+';'
       self.view.replace(edit, sel, result)
 
+    # lambda
+    sels = self.view.find_all(r'lam([\s\);]|,\w+;?)')
+    for sel in sels[::-1]:
+      s = self.view.substr(sel)
+      c = s[3]
+      res = r'[&](){}()'+c
+      if c == ',':
+        res = 'auto '+s[4:]+' = [&]() {};'
+      self.view.replace(edit, sel, res)
+
+    # typo
+    typos = {
+      'retrun': 'return',
+      'whlie': 'while',
+    }
+    for wa,ac in typos.items():
+      sels = self.view.find_all(wa)
+      for sel in sels[::-1]:
+        self.view.replace(edit, sel, ac)
+
   # paste library
   def paste(self, edit, sel, name):
     try:
