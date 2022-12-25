@@ -211,13 +211,6 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       s = re.sub('DaMmY', 'b', s)
       self.view.replace(edit, sel, s)
 
-    # rin -> rep(i,n)
-    for region in self.view.sel():
-      line = self.view.line(region)
-      s = self.view.substr(line)
-      s = re.sub(r'r(\w)(\w*)$', r'rep(\1,\2)', s)
-      self.view.replace(edit, line, s)
-
     # init
     sels = self.view.find_all(r'init,[^;]*?(;|$)')
     for sel in sels[::-1]:
@@ -247,12 +240,20 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
     # typo
     typos = {
       'retrun': 'return',
+      'retunr': 'return',
       'whlie': 'while',
     }
     for wa,ac in typos.items():
       sels = self.view.find_all(wa)
       for sel in sels[::-1]:
         self.view.replace(edit, sel, ac)
+
+    # rin -> rep(i,n)
+    for region in self.view.sel():
+      line = self.view.line(region)
+      s = self.view.substr(line)
+      s = re.sub(r'r(\w)(\w*)$', r'rep(\1,\2)', s)
+      self.view.replace(edit, line, s)
 
   # paste library
   def paste(self, edit, sel, name):
