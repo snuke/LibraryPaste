@@ -1,5 +1,6 @@
+# coding: utf-8
 import sublime, sublime_plugin
-import random, re, os
+import random, re, os, datetime
 
 # root directory
 root = ''
@@ -9,6 +10,15 @@ with open(root_path) as f:
 
 def genRand(l,r):
   return str(random.randint(l,r-1))
+
+def updateIndex(name):
+  file_name = root+'log.js'
+  try:
+    with open(file_name, 'a') as f:
+      now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+      f.write('+"[{}] {}"\n'.format(now,name))
+  except Exception as e:
+    print(e)
 
 class LibraryPasteCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -261,11 +271,13 @@ class LibraryPasteCommand(sublime_plugin.TextCommand):
       f = open(root+name+'.cpp', 'r')
       self.view.replace(edit, sel, f.read())
       f.close()
+      updateIndex(name)
     except:
       try:
         f = open(root+'macro/'+name+'.cpp', 'r')
         self.view.replace(edit, sel, f.read())
         f.close()
+        updateIndex(name)
       except: pass
 
 class InsertMacroCommand(sublime_plugin.WindowCommand):
@@ -289,9 +301,11 @@ class PasteMacroCommand(sublime_plugin.TextCommand):
         with open(root+name+'.cpp', 'r') as f:
           pos = self.view.find(r'^$', 0)
           self.view.insert(edit, pos.a, '\n'+f.read())
+      updateIndex(name)
     except:
       try:
         with open(root+'macro/'+name+'.cpp', 'r') as f:
           pos = self.view.find(r'^$', 0)
           self.view.insert(edit, pos.a, f.read()+'\n')
+        updateIndex(name)
       except: pass
