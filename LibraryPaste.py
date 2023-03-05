@@ -15,7 +15,7 @@ def updateIndex(name):
   file_name = root+'log.js'
   try:
     with open(file_name, 'a') as f:
-      now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+      now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
       f.write('+"[{}] {}"\n'.format(now,name))
   except Exception as e:
     print(e)
